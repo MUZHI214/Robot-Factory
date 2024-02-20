@@ -183,7 +183,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a7b1dec7f25b4d042a40594c23ed7050, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  itemType: 0
+  itemType: 2
   mineTime: 1
 --- !u!58 &3833462047637048038
 CircleCollider2D:

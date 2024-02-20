@@ -1,29 +1,14 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : Entity
 {
-    public float speed = 10.0f;
-
-    ItemMine itemMine;
-    public List<Item> items = new List<Item>();
-
-    bool isMining = false;
-    float mineTimer = 0;
-
-    [SerializeField]
-    Slider progressBar;
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        progressBar.value = 0;
-        progressBar.gameObject.SetActive(false);
-    }
 
     // Update is called once per frame
-    void Update()
+    public override void Update()
     {
         var moveDirection = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical")).normalized;
 
@@ -35,30 +20,15 @@ public class PlayerController : MonoBehaviour
         {
             if (Input.GetMouseButtonDown(0))
             {
-                mineTimer = itemMine.mineTime;
-                isMining = true;
-                progressBar.gameObject.SetActive(true);
+                StartMining();
             }
             else if (Input.GetMouseButtonUp(0))
             {
-                isMining = false;
-                mineTimer = itemMine.mineTime;
-                progressBar.gameObject.SetActive(false);
+                StopMining();
             }
-
-            if (isMining)
-            {
-                mineTimer -= Time.deltaTime;
-
-                if (mineTimer <= 0)
-                {
-                    items.Add(new Item(itemMine.itemType));
-                    mineTimer = itemMine.mineTime;
-                    return;
-                }
-            }
-            progressBar.value = (itemMine.mineTime - mineTimer) / itemMine.mineTime;
         }
+
+        base.Update();
     }
 
     void OnTriggerEnter2D(Collider2D collision)
