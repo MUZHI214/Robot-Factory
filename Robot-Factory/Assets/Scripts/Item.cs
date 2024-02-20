@@ -1,18 +1,20 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class Item : MonoBehaviour
+public enum ItemType
 {
-    // Start is called before the first frame update
-    void Start()
+    Rock,
+    Metal,
+    Wood
+}
+
+public class Item
+{
+    public string Name { get; set; }
+
+    public Item(ItemType type)
     {
-        
+        Name = type.ToString();
+        Debug.Log(Name);
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }
