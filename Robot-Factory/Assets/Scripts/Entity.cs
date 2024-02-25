@@ -10,6 +10,7 @@ public class Entity : MonoBehaviour
     public float speed = 10.0f;
 
     protected ItemMine itemMine;
+    protected Factory factory;
 
     public Dictionary<ItemType, int> items = new Dictionary<ItemType, int>();
 
@@ -76,14 +77,22 @@ public class Entity : MonoBehaviour
         progressBar.gameObject.SetActive(false);
     }
 
+    public void RetrieveItems()
+    {
+        if (factory)
+            items[factory.itemToProduce] += factory.GetNumProduced(Math.Min(maxItems - items[factory.itemToProduce], maxItems));
+    }
+
     void OnTriggerEnter2D(Collider2D collision)
     {
         itemMine = collision.gameObject.GetComponent<ItemMine>();
+        factory = collision.gameObject.GetComponent<Factory>();
     }
 
     void OnTriggerExit2D(Collider2D collision)
     {
         StopMining();
         itemMine = null;
+        factory = null;
     }
 }

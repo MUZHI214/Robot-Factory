@@ -1,10 +1,12 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public enum ItemType
 {
     Rock,
     Metal,
-    Wood
+    Wood,
+    Tool,
 }
 
 public class Item
@@ -14,7 +16,13 @@ public class Item
     public Item(ItemType type)
     {
         Name = type.ToString();
-        Debug.Log(Name);
     }
 
+    public static Dictionary<ItemType, Dictionary<ItemType, int>> recipes = new Dictionary<ItemType, Dictionary<ItemType, int>>()
+    {
+        [ItemType.Rock] = null,
+        [ItemType.Metal] = null,
+        [ItemType.Wood] = null,
+        [ItemType.Tool] = new Dictionary<ItemType, int>() { [ItemType.Wood] = 5 },
+    };
 }
