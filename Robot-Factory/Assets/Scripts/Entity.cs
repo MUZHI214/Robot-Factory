@@ -14,11 +14,16 @@ public class Entity : MonoBehaviour
 
     public Dictionary<ItemType, int> items = new Dictionary<ItemType, int>();
 
+    public bool IsMining { get { return isMining; } }
+
     protected bool isMining = false;
     protected float mineTimer = 0;
 
     [SerializeField]
     protected Slider progressBar;
+
+    [SerializeField]
+    protected Text itemText;
 
     // Start is called before the first frame update
     public virtual void Start()
@@ -81,6 +86,12 @@ public class Entity : MonoBehaviour
     {
         if (factory)
             items[factory.itemToProduce] += factory.GetNumProduced(Math.Min(maxItems - items[factory.itemToProduce], maxItems));
+    }
+
+    public void MoveTowards(Vector3 targetPosition)
+    {
+        var direction = (targetPosition - this.transform.position).normalized;
+        this.transform.position = this.transform.position + direction * Time.deltaTime * speed;
     }
 
     void OnTriggerEnter2D(Collider2D collision)
