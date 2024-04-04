@@ -1,0 +1,12 @@
+For this project, I learned many things from the Internet that I didn't know before. 
+The following list will show the sources. I am very grateful to them for teaching me.
+by Zejun Meng
+
+----To create GridMap, GridSystem code ----- study from Code Monkey, YouTube
+Grid System in Unity (Heatmap, Pathfinding, Building Area)
+https://www.youtube.com/watch?v=waEsGu--9P8
+
+
+----Create improved pathfinding based on the GridSystem ----- study from Code Monkey, YouTube
+A* Pathfinding in Unity
+https://www.youtube.com/watch?v=alU04hvz6L4&t=355s
