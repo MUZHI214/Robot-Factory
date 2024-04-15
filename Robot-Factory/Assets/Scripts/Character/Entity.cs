@@ -67,7 +67,7 @@ public class Entity : MonoBehaviour
 
     public void StartMining()
     {
-        if (items[itemMine.itemType] < maxItems && itemMine is not null)
+        if (itemMine is not null && items[itemMine.itemType] < maxItems)
         {
             mineTimer = itemMine.mineTime;
             isMining = true;
