@@ -18,7 +18,7 @@ public class Pathfinding
     {
         Instance = this;
         // set up grid
-        grid = new GridSystem<PathNode>(width, height, 10f, Vector3.zero,(GridSystem<PathNode> grid, int x, int y) => new PathNode(grid,x,y));
+        grid = new GridSystem<PathNode>(width, height, 10f, Vector3.zero, (GridSystem<PathNode> grid, int x, int y) => new PathNode(grid, x, y));
     }
 
     public List<Vector3> FindPath(Vector3 startWorldPosition, Vector3 endWorldPosition)
@@ -45,7 +45,7 @@ public class Pathfinding
     public List<PathNode> FindPath(int startX, int startY, int endX, int endY)
     {
         // Get the coordinates of the current location
-        PathNode startNode = grid.GetValue(startX,startY);
+        PathNode startNode = grid.GetValue(startX, startY);
         // Get the coordinates of the target location
         PathNode endNode = grid.GetValue(endX, endY);
         //set up OpenList and ClosedList
@@ -57,7 +57,7 @@ public class Pathfinding
         {
             for (int y = 0; y < grid.GetHeight(); y++)
             {
-                PathNode pathNode = grid.GetValue(x,y);
+                PathNode pathNode = grid.GetValue(x, y);
                 pathNode.gCost = int.MaxValue;
                 pathNode.CalculateFCost();
                 pathNode.cameFromNode = null;
@@ -65,7 +65,7 @@ public class Pathfinding
         }
 
         startNode.gCost = 0;
-        startNode.hCost = CalculateDistance(startNode,endNode);
+        startNode.hCost = CalculateDistance(startNode, endNode);
         startNode.CalculateFCost();
 
         while (openList.Count > 0)
@@ -93,12 +93,12 @@ public class Pathfinding
                 }
 
 
-                int tentativeGCost = currentNode.gCost + CalculateDistance(currentNode,neighbourNode);
+                int tentativeGCost = currentNode.gCost + CalculateDistance(currentNode, neighbourNode);
                 if (tentativeGCost < neighbourNode.gCost)
                 {
                     neighbourNode.cameFromNode = currentNode;
                     neighbourNode.gCost = tentativeGCost;
-                    neighbourNode.hCost = CalculateDistance(neighbourNode,endNode);
+                    neighbourNode.hCost = CalculateDistance(neighbourNode, endNode);
                     neighbourNode.CalculateFCost();
 
                     if (!openList.Contains(neighbourNode))
@@ -107,7 +107,7 @@ public class Pathfinding
                     }
                 }
             }
-        
+
         }
 
         // Out of nodes on the Open List       
@@ -117,14 +117,15 @@ public class Pathfinding
     private List<PathNode> GetNeighbourList(PathNode currentNode)
     {
         List<PathNode> neighbourList = new List<PathNode>();
-        
-        if (currentNode.x -1 >= 0) {
+
+        if (currentNode.x - 1 >= 0)
+        {
             // Left
             neighbourList.Add(GetNode(currentNode.x - 1, currentNode.y));
             // Left Down
             if (currentNode.y - 1 >= 0)
             {
-                neighbourList.Add(GetNode(currentNode.x -1, currentNode.y -1));
+                neighbourList.Add(GetNode(currentNode.x - 1, currentNode.y - 1));
             }
             // Left Up
             if (currentNode.y + 1 < grid.GetHeight())
@@ -148,19 +149,20 @@ public class Pathfinding
             }
         }
         // Down
-        if (currentNode.y - 1 >= 0) {
-            neighbourList.Add(GetNode(currentNode.x, currentNode.y -1));
+        if (currentNode.y - 1 >= 0)
+        {
+            neighbourList.Add(GetNode(currentNode.x, currentNode.y - 1));
         }
         // Up
         if (currentNode.y + 1 < grid.GetHeight())
         {
-            neighbourList.Add(GetNode(currentNode.x, currentNode.y +1));
+            neighbourList.Add(GetNode(currentNode.x, currentNode.y + 1));
         }
 
         return neighbourList;
     }
 
-   
+
 
     private List<PathNode> CalculatePath(PathNode endNode)
     {
@@ -189,14 +191,14 @@ public class Pathfinding
         return grid;
     }
 
-    private PathNode GetNode(int x, int y)
+    public PathNode GetNode(int x, int y)
     {
-        return grid.GetValue(x,y);
+        return grid.GetValue(x, y);
     }
     private PathNode GetLowestFCostNode(List<PathNode> pathNodeList)
     {
         PathNode lowestFCostNode = pathNodeList[0];
-        for (int i =1; i < pathNodeList.Count; i ++)
+        for (int i = 1; i < pathNodeList.Count; i++)
         {
             if (pathNodeList[i].fCost < lowestFCostNode.fCost)
             {

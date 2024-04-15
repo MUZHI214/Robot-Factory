@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class ItemMine : MonoBehaviour
@@ -9,6 +10,12 @@ public class ItemMine : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        var pathfinder = Pathfinding.Instance;
+
+        var pos = pathfinder.GetGrid().GetWorldPosition(Mathf.FloorToInt(this.transform.position.x), Mathf.FloorToInt(this.transform.position.y));
+        pos.x += pathfinder.GetGrid().GetCellSize() / 2;
+        pos.y += pathfinder.GetGrid().GetCellSize() / 2;
+        this.transform.position = pos;
     }
 
     // Update is called once per frame

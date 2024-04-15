@@ -1,21 +1,30 @@
+using System.Collections.Generic;
 using GOAP;
 using UnityEngine;
 
 public class GOAPManager : MonoBehaviour
 {
+    public FactoryManager factoryManager;
+
     Action[] currentPlan;
     WorldState currentState;
     // WorldState newState = new WorldState();
-    Entity entity;
+    Robot robot;
     int currentActionIndex = 0;
 
     FloatGoal items = new FloatGoal("Items", 5);
     PositionGoal minePosition = new PositionGoal("Mine", 1, Vector2.up);
 
+    bool targetSet = false;
+
     // Start is called before the first frame update
     void Start()
     {
-        this.TryGetComponent<Entity>(out entity);
+        if (!this.TryGetComponent<Robot>(out robot))
+        {
+            Debug.LogError("GOAPManager script must be attached to a GameObject of type Robot!");
+            return;
+        }
 
         // Create initial world state
         Domain factoryDomain = new Domain();
@@ -51,39 +60,57 @@ public class GOAPManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (entity is null) return;
+        if (robot is null) return;
 
         // TODO: Figure out when to reset the index
-        if (currentActionIndex >= currentPlan.Length) return;
-
-        if (currentPlan[currentActionIndex].Name == "Move to Mine")
+        if (currentActionIndex >= currentPlan.Length)
         {
-            // Make sure entity isn't trying to mine
-            if (entity.IsMining)
-                entity.StopMining();
+            currentState.SatisfiedActions = null;
+            currentPlan = DFSPlan.plan(currentState, 4);
+            currentActionIndex = 0;
+        };
 
-            // Move the entity
-            entity.MoveTowards(minePosition.Position);// = currentPlan[currentActionIndex].PositionEffects[minePosition] + new Vector2(this.gameObject.transform.position.x, this.gameObject.transform.position.y);
-            var movedAmount = new Vector2(entity.transform.position.x, entity.transform.position.y) - currentState.PositionGoals[minePosition];
-            if (Vector2.Distance(movedAmount, currentPlan[currentActionIndex].PositionEffects[minePosition]) <= 0.01)
+        if (currentPlan.Length != 0)
+        {
+            if (currentPlan[currentActionIndex].Name == "Move to Mine")
             {
-                currentState.PositionGoals[minePosition] += currentPlan[currentActionIndex].PositionEffects[minePosition];
-                entity.transform.position = currentState.PositionGoals[minePosition];
-                currentActionIndex++;
+                // Make sure entity isn't trying to mine
+                if (robot.IsMining)
+                    robot.StopMining();
+
+                // Move the entity
+                if (!targetSet)
+                {
+                    robot.SetTargetPosition(
+                        Pathfinding.Instance.GetGrid().GetWorldPosition(
+                            (int)minePosition.Position.x, (int)minePosition.Position.y
+                        ) + new Vector3(
+                                Pathfinding.Instance.GetGrid().GetCellSize() / 2,
+                                Pathfinding.Instance.GetGrid().GetCellSize() / 2,
+                                0
+                            )
+                    );
+                    targetSet = true;
+                }
+                if (!robot.IsMoving)
+                {
+                    currentState.PositionGoals[minePosition] += currentPlan[currentActionIndex].PositionEffects[minePosition];
+                    currentActionIndex++;
+                }
             }
-        }
-        else
-        {
-            // Start mining
-            if (!entity.IsMining)
-                entity.StartMining();
             else
             {
-                if (entity.items[ItemType.Wood] > currentState.FloatGoals[items])
+                // Start mining
+                if (!robot.IsMining)
+                    robot.StartMining();
+                else
                 {
-                    entity.StopMining();
-                    currentState.FloatGoals[items]++;
-                    currentActionIndex++;
+                    if (robot.items[ItemType.Wood] > currentState.FloatGoals[items])
+                    {
+                        robot.StopMining();
+                        currentState.FloatGoals[items]++;
+                        currentActionIndex++;
+                    }
                 }
             }
         }

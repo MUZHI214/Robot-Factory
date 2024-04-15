@@ -7,6 +7,8 @@ public class Robot : Entity
     private int currentPathIndex;
     private List<Vector3> pathVectorList;
 
+    public bool IsMoving { get; private set; }
+
     // Update is called once per frame
     public override void Update()
     {
@@ -48,6 +50,7 @@ public class Robot : Entity
     private void StopMoving()
     {
         pathVectorList = null;
+        IsMoving = false;
     }
 
     public Vector3 GetPosition()
@@ -63,5 +66,7 @@ public class Robot : Entity
         {
             pathVectorList.RemoveAt(0);
         }
+
+        IsMoving = true;
     }
 }
