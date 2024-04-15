@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class Testing : MonoBehaviour
 {
+
+    [SerializeField] public Robot character;
+
     private Pathfinding pathfinding;
     // Start is called before the first frame update
     private void Start()
@@ -27,8 +30,10 @@ public class Testing : MonoBehaviour
                     Debug.DrawLine(new Vector3(path[i].x, path[i].y) * 10f + Vector3.one * 5f, new Vector3(path[i + 1].x, path[i + 1].y) * 10f + Vector3.one * 5f, Color.green, 15f);
                 }
             }
+            character.SetTargetPosition(mouseWorldPosition);
         }
 
+        //18:36
         if (Input.GetMouseButtonDown(1))
         {
 
