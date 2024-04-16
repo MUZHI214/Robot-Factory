@@ -15,7 +15,7 @@ namespace GOAP
 
         public override float GetContentment(WorldState state)
         {
-            return Vector2.Distance(state.PositionGoals[this], Position) * Contentment;
+            return Contentment;
         }
     }
 }

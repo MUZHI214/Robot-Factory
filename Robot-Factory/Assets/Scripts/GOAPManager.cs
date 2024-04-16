@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using GOAP;
 using UnityEngine;
 
@@ -6,14 +8,14 @@ public class GOAPManager : MonoBehaviour
 {
     public FactoryManager factoryManager;
 
-    Action[] currentPlan;
+    GOAP.Action[] currentPlan;
     WorldState currentState;
     // WorldState newState = new WorldState();
     Robot robot;
     int currentActionIndex = 0;
 
-    FloatGoal items = new FloatGoal("Items", 5);
-    PositionGoal minePosition = new PositionGoal("Mine", 1, Vector2.up);
+    Dictionary<ItemType, FloatGoal> itemGoals = new Dictionary<ItemType, FloatGoal>();
+    private static Dictionary<ItemType, List<PositionGoal>> minePositions = new Dictionary<ItemType, List<PositionGoal>>();
 
     bool targetSet = false;
 
@@ -31,20 +33,38 @@ public class GOAPManager : MonoBehaviour
         currentState = new WorldState();
         currentState.Debug = true;
 
-        // Add Goals
-        currentState.FloatGoals.Add(items, 0);
-        currentState.PositionGoals.Add(minePosition, this.gameObject.transform.position);
+        // Add Goals & Actions
+        foreach (ItemType type in Enum.GetValues(typeof(ItemType)))
+        {
+            var itemGoal = new FloatGoal("Item - " + type, 1);
+            itemGoals.Add(type, itemGoal);
+            currentState.FloatGoals.Add(itemGoals[type], 0);
 
-        // Create actions
-        Action moveToMine = new Action("Move to Mine");
-        moveToMine.PositionEffects.Add(minePosition, Vector2.up);
+            GOAP.Action mineItems = new GOAP.Action("Mine");
+            mineItems.PositionPreconditionsUseOr = true;
+            mineItems.FloatRangePreconditions.Add(itemGoal, new Tuple<float, float>(0, 5));
 
-        Action mineItems = new Action("Mine");
-        mineItems.PositionPreconditions.Add(minePosition, Vector2.up);
-        mineItems.FloatEffects.Add(items, 1);
+            minePositions.Add(type, new List<PositionGoal>());
+            foreach (var mine in factoryManager.itemMines[type])
+            {
+                var posGoal = new PositionGoal("Mine - " + type, 1, mine.transform.position);
+                minePositions[type].Add(posGoal);
+                currentState.PositionGoals.Add(posGoal, robot.transform.position);
 
-        factoryDomain.Actions.Add(mineItems);
-        factoryDomain.Actions.Add(moveToMine);
+                GOAP.Action moveToMine = new GOAP.Action("Move to Mine");
+                moveToMine.PositionEffects.Add(posGoal, mine.transform.position);
+
+                mineItems.PositionPreconditions.Add(posGoal, mine.transform.position);
+
+                factoryDomain.Actions.Add(moveToMine);
+            }
+
+            mineItems.FloatEffects.Add(itemGoal, 1);
+
+            factoryDomain.Actions.Add(mineItems);
+        }
+
+
 
         currentState.Domain = factoryDomain;
 
@@ -52,7 +72,7 @@ public class GOAPManager : MonoBehaviour
 
         currentPlan = DFSPlan.plan(currentState, 4);
         Debug.Log("DFS Plan:");
-        foreach (Action action in currentPlan)
+        foreach (GOAP.Action action in currentPlan)
             Debug.Log(action);
         Debug.Log("");
     }
@@ -62,7 +82,6 @@ public class GOAPManager : MonoBehaviour
     {
         if (robot is null) return;
 
-        // TODO: Figure out when to reset the index
         if (currentActionIndex >= currentPlan.Length)
         {
             currentState.SatisfiedActions = null;
@@ -70,47 +89,46 @@ public class GOAPManager : MonoBehaviour
             currentActionIndex = 0;
         };
 
+        if (currentPlan is null) return;
         if (currentPlan.Length != 0)
         {
-            if (currentPlan[currentActionIndex].Name == "Move to Mine")
+            GOAP.Action currentAction = currentPlan[currentActionIndex];
+
+            if (currentAction.Name == "Move to Mine")
             {
                 // Make sure entity isn't trying to mine
                 if (robot.IsMining)
                     robot.StopMining();
 
-                // Move the entity
+                PositionGoal posGoal = (PositionGoal)currentPlan[currentActionIndex].PositionEffects.Keys.First();
+
+                // Make sure target position is only set one time
                 if (!targetSet)
                 {
-                    robot.SetTargetPosition(
-                        Pathfinding.Instance.GetGrid().GetWorldPosition(
-                            (int)minePosition.Position.x, (int)minePosition.Position.y
-                        ) + new Vector3(
-                                Pathfinding.Instance.GetGrid().GetCellSize() / 2,
-                                Pathfinding.Instance.GetGrid().GetCellSize() / 2,
-                                0
-                            )
-                    );
+                    robot.SetTargetPosition(posGoal.Position);
                     targetSet = true;
                 }
                 if (!robot.IsMoving)
                 {
-                    currentState.PositionGoals[minePosition] += currentPlan[currentActionIndex].PositionEffects[minePosition];
                     currentActionIndex++;
+                    currentState.PositionGoals[posGoal] = robot.transform.position;
+                    targetSet = false;
                 }
             }
-            else
+            else if (currentAction.Name == "Mine")
             {
+                FloatGoal itemGoal = (FloatGoal)currentAction.FloatEffects.Keys.First();
+                ItemType itemType = Enum.Parse<ItemType>(itemGoal.Name.Split('-')[1].Trim());
+
                 // Start mining
                 if (!robot.IsMining)
                     robot.StartMining();
-                else
+
+                if (robot.items[itemType] > currentState.FloatGoals[itemGoal])
                 {
-                    if (robot.items[ItemType.Wood] > currentState.FloatGoals[items])
-                    {
-                        robot.StopMining();
-                        currentState.FloatGoals[items]++;
-                        currentActionIndex++;
-                    }
+                    robot.StopMining();
+                    currentState.FloatGoals[itemGoal]++;
+                    currentActionIndex++;
                 }
             }
         }

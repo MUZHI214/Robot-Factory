@@ -24,6 +24,8 @@ public class Factory : MonoBehaviour
     [SerializeField]
     Slider progressBar;
 
+    public Vector2 gridPositon = Vector2.zero;
+
     // Start is called before the first frame update
     void Start()
     {
