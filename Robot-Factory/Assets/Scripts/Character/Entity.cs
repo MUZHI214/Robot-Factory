@@ -82,10 +82,16 @@ public class Entity : MonoBehaviour
         progressBar.gameObject.SetActive(false);
     }
 
-    public void RetrieveItems()
+    public bool RetrieveItems()
     {
         if (factory)
-            items[factory.itemToProduce] += factory.GetNumProduced(1);
+        {
+            int num = factory.GetNumProduced(1);
+            items[factory.itemToProduce] += num;
+            return num > 0;
+        }
+
+        return false;
     }
 
     public void PlaceItems()

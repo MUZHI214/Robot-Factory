@@ -7,6 +7,7 @@ public enum ItemType
     Metal,
     Wood,
     Tool,
+    StoneTool,
 }
 
 public class Item
@@ -24,5 +25,6 @@ public class Item
         [ItemType.Metal] = null,
         [ItemType.Wood] = null,
         [ItemType.Tool] = new Dictionary<ItemType, int>() { [ItemType.Wood] = 5 },
+        [ItemType.StoneTool] = new Dictionary<ItemType, int>() { [ItemType.Rock] = 2, [ItemType.Tool] = 1 },
     };
 }

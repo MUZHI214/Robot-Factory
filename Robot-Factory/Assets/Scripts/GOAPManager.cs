@@ -33,149 +33,83 @@ public class GOAPManager : MonoBehaviour
         // Create initial world state
         Domain factoryDomain = new Domain();
         currentState = new WorldState();
-        currentState.Debug = true;
+        currentState.Debug = false;
 
-        var factoryPosition = factoryManager.factories[ItemType.Tool][0].transform.position;
-        var minePosition = factoryManager.itemMines[ItemType.Wood][0].transform.position;
-
-        PositionGoal robotPositionGoal = new PositionGoal("Robot Position", 2, robot.transform.position);
-
-        FloatGoal heldWood = new FloatGoal("Mine - Wood", 1);
-        FloatGoal heldTools = new FloatGoal("Held Tools", 5);
-        FloatGoal toolGoal = new FloatGoal("Crafted Tools", 4);
-
-        // Initial state
+        PositionGoal robotPositionGoal = new PositionGoal("Robot Position", 2);
         currentState.PositionGoals.Add(robotPositionGoal, robot.transform.position);
-        currentState.FloatGoals.Add(heldWood, 0);
-        currentState.FloatGoals.Add(heldTools, 0);
-        currentState.FloatGoals.Add(toolGoal, 0);
 
-        GOAP.Action retrieveTools = new GOAP.Action("Retrieve");
-        retrieveTools.FloatEffects.Add(toolGoal, -1);
-        retrieveTools.FloatEffects.Add(heldTools, 1);
-        retrieveTools.FloatRangePreconditions.Add(toolGoal, new Tuple<float, float>(1, 6));
+        foreach (ItemType item in Enum.GetValues(typeof(ItemType)))
+        {
+            int contentment = 0;
+            if (Item.recipes[item] is not null)
+            {
+                contentment = 10 + Item.recipes[item].Count + 1;
 
-        GOAP.Action craftTool = new GOAP.Action("Craft");
-        craftTool.FloatEffects.Add(heldWood, -5);
-        craftTool.FloatEffects.Add(toolGoal, 1);
-        craftTool.PositionPreconditions.Add(robotPositionGoal, factoryPosition);
-        craftTool.FloatRangePreconditions.Add(toolGoal, new Tuple<float, float>(0, 5));
-        craftTool.FloatPreconditions.Add(heldWood, 5);
+                // Keep track of amount of crafted items sitting at factory
+                var craftedGoal = new FloatGoal("Crafted " + item.ToString(), contentment - 1);
+                craftedGoals.Add(item, craftedGoal);
+                currentState.FloatGoals.Add(craftedGoal, 0);
+            }
 
-        GOAP.Action moveToFactory = new GOAP.Action("Move to Factory");
-        moveToFactory.PositionEffects.Add(robotPositionGoal, factoryPosition);
-        moveToFactory.FloatPreconditions.Add(heldWood, 5);
+            // Keep track of items in inventory
+            var itemGoal = new FloatGoal(item.ToString(), contentment);
+            itemGoals.Add(item, itemGoal);
+            currentState.FloatGoals.Add(itemGoal, 0);
+        }
 
-        GOAP.Action mineWood = new GOAP.Action("Mine");
-        mineWood.FloatEffects.Add(heldWood, 1);
-        mineWood.PositionPreconditions.Add(robotPositionGoal, minePosition);
-        mineWood.FloatRangePreconditions.Add(heldWood, new Tuple<float, float>(0, 5));
+        foreach (var (mineType, mineList) in factoryManager.itemMines)
+        {
+            foreach (var mine in mineList)
+            {
+                GOAP.Action goToMine = new("Move to Mine - " + mineType);
+                goToMine.PositionEffects.Add(robotPositionGoal, mine.transform.position);
+                goToMine.FloatRangePreconditions.Add(itemGoals[mineType], new(0, 5)); // Only try to go to mine when not full
 
-        GOAP.Action moveToMine = new GOAP.Action("Move to Mine");
-        moveToMine.PositionEffects.Add(robotPositionGoal, minePosition);
-        moveToMine.FloatRangePreconditions.Add(heldWood, new Tuple<float, float>(0, 5));
+                GOAP.Action mineAction = new("Mine " + mineType);
+                mineAction.FloatEffects.Add(itemGoals[mineType], 1);
+                mineAction.PositionPreconditions.Add(robotPositionGoal, mine.transform.position);
+                mineAction.FloatRangePreconditions.Add(itemGoals[mineType], new(0, 5)); // Only try to actually mine when not full
 
-        factoryDomain.Actions.Add(retrieveTools);
-        factoryDomain.Actions.Add(craftTool);
-        factoryDomain.Actions.Add(retrieveTools);
-        factoryDomain.Actions.Add(moveToFactory);
-        factoryDomain.Actions.Add(mineWood);
-        factoryDomain.Actions.Add(moveToMine);
+                factoryDomain.Actions.Add(goToMine);
+                factoryDomain.Actions.Add(mineAction);
+            }
+        }
 
-        // Add Goals & Actions
-        // foreach (ItemType type in Enum.GetValues(typeof(ItemType)))
-        // {
-        //     var itemGoal = new FloatGoal("Item - " + type, 1);
-        //     itemGoals.Add(type, itemGoal);
-        //     currentState.FloatGoals.Add(itemGoals[type], 0);
+        foreach (var (factoryType, factoryList) in factoryManager.factories)
+        {
+            foreach (var factory in factoryList)
+            {
+                GOAP.Action goToFactory = new("Move to Factory - " + factoryType);
+                goToFactory.PositionEffects.Add(robotPositionGoal, factory.transform.position);
 
-        //     if (factoryManager.itemMines.ContainsKey(type))
-        //     {
-        //         // Mining items
-        //         GOAP.Action mineItems = new GOAP.Action("Mine");
-        //         mineItems.PositionPreconditionsUseOr = true;
-        //         mineItems.FloatRangePreconditions.Add(itemGoal, new Tuple<float, float>(0, 5));
-        //         mineItems.FloatEffects.Add(itemGoal, 1);
+                GOAP.Action craft = new("Craft " + factoryType);
+                craft.FloatEffects.Add(craftedGoals[factoryType], 1);
+                craft.PositionPreconditions.Add(robotPositionGoal, factory.transform.position);
 
-        //         minePositions.Add(type, new List<PositionGoal>());
-        //         foreach (var mine in factoryManager.itemMines[type])
-        //         {
-        //             var posGoal = new PositionGoal("Mine - " + type, 1, mine.transform.position);
-        //             minePositions[type].Add(posGoal);
-        //             currentState.PositionGoals.Add(posGoal, robot.transform.position);
+                GOAP.Action retrieve = new("Retrieve " + factoryType);
+                retrieve.FloatEffects.Add(craftedGoals[factoryType], -1);
+                retrieve.FloatEffects.Add(itemGoals[factoryType], 1);
+                retrieve.PositionPreconditions.Add(robotPositionGoal, factory.transform.position);
+                retrieve.FloatRangePreconditions.Add(craftedGoals[factoryType], new(1, 6));
 
-        //             GOAP.Action moveToMine = new GOAP.Action("Move to Mine");
-        //             moveToMine.PositionEffects.Add(posGoal, mine.transform.position);
+                foreach (var recipe in Item.recipes[factoryType])
+                {
+                    goToFactory.FloatRangePreconditions.Add(itemGoals[recipe.Key], new(recipe.Value, 6));
+                    craft.FloatEffects.Add(itemGoals[recipe.Key], -recipe.Value);
+                    craft.FloatRangePreconditions.Add(itemGoals[recipe.Key], new(recipe.Value, 6));
+                }
 
-        //             mineItems.PositionPreconditions.Add(posGoal, mine.transform.position);
-
-        //             factoryDomain.Actions.Add(moveToMine);
-        //         }
-
-        //         factoryDomain.Actions.Add(mineItems);
-        //     }
-
-        //     if (factoryManager.factories.ContainsKey(type))
-        //     {// Retrieving/Crafting factory made items
-        //         FloatGoal craftedGoal = new FloatGoal("Crafted - " + type, 5);
-        //         craftedGoals.Add(type, craftedGoal);
-        //         currentState.FloatGoals.Add(craftedGoals[type], 0);
-
-        //         GOAP.Action retrieveItems = new GOAP.Action("Retrieve");
-        //         retrieveItems.PositionPreconditionsUseOr = true; // Robot can be at any factory that has an item
-        //         retrieveItems.FloatRangePreconditions.Add(itemGoal, new Tuple<float, float>(0, 5));
-        //         retrieveItems.FloatRangePreconditions.Add(craftedGoal, new Tuple<float, float>(1, 6));
-
-        //         GOAP.Action craftItems = new GOAP.Action("Craft");
-        //         craftItems.PositionPreconditionsUseOr = true; // Robot can be at any factory that has an item
-        //         craftItems.FloatRangePreconditions.Add(craftedGoal, new Tuple<float, float>(0, 5));
-
-        //         factoryPositions.Add(type, new List<PositionGoal>());
-        //         foreach (var factory in factoryManager.factories[type])
-        //         {
-        //             var posGoal = new PositionGoal("Factory - " + type, 2, factory.transform.position);
-        //             factoryPositions[type].Add(posGoal);
-        //             currentState.PositionGoals.Add(posGoal, robot.transform.position);
-
-        //             GOAP.Action moveToFactoryCraft = new GOAP.Action("Move to Factory Craft");
-        //             moveToFactoryCraft.PositionEffects.Add(posGoal, factory.transform.position);
-
-        //             foreach (var item in Item.recipes[factory.itemToProduce])
-        //             {
-        //                 moveToFactoryCraft.FloatPreconditions.Add(itemGoals[item.Key], item.Value);
-        //             }
-        //             factoryDomain.Actions.Add(moveToFactoryCraft);
-
-        //             GOAP.Action moveToFactoryRetrieve = new GOAP.Action("Move to Factory Retrieve");
-        //             moveToFactoryRetrieve.PositionEffects.Add(posGoal, factory.transform.position);
-        //             moveToFactoryRetrieve.FloatRangePreconditions.Add(craftedGoal, new Tuple<float, float>(0, 5));
-
-        //             retrieveItems.PositionPreconditions.Add(posGoal, factory.transform.position);
-        //             craftItems.PositionPreconditions.Add(posGoal, factory.transform.position);
-
-        //             itemGoals[factory.itemToProduce].Contentment = 5;
-
-        //             foreach (var item in Item.recipes[factory.itemToProduce])
-        //             {
-        //                 craftItems.FloatPreconditions.Add(itemGoals[item.Key], item.Value);
-        //                 craftItems.FloatEffects.Add(itemGoals[item.Key], -item.Value);
-        //             }
-        //         }
-
-        //         retrieveItems.FloatEffects.Add(itemGoal, 1);
-        //         factoryDomain.Actions.Add(retrieveItems);
-        //         craftItems.FloatEffects.Add(craftedGoal, 1);
-        //         factoryDomain.Actions.Add(craftItems);
-        //     }
-        // }
+                factoryDomain.Actions.Add(goToFactory);
+                factoryDomain.Actions.Add(craft);
+                factoryDomain.Actions.Add(retrieve);
+            }
+        }
 
         currentState.Domain = factoryDomain;
 
         Debug.Log(currentState);
 
-        var tup = DFSPlan.plan(currentState, 4);
-        currentPlan = tup.Item1;
-        allStates = tup.Item2;
+        currentPlan = DFSPlan.plan(currentState, 4);
         Debug.Log("DFS Plan:");
         foreach (GOAP.Action action in currentPlan)
             Debug.Log(action);
@@ -186,35 +120,34 @@ public class GOAPManager : MonoBehaviour
     void Update()
     {
         if (robot is null) return;
-        if (currentPlan is null)
+        if (currentPlan is null || currentPlan.All((act) => act is null))
         {
-            currentState.SatisfiedActions = null;
-            var tup = DFSPlan.plan(currentState, 4);
-            currentPlan = tup.Item1;
-            allStates = tup.Item2;
-            currentActionIndex = 0;
+            Debug.LogError("Empty plan created!");
             return;
         };
 
         if (currentActionIndex >= currentPlan.Length)
         {
-            //currentState.SatisfiedActions = null;
-            var tup = DFSPlan.plan(currentState, 4);
-            currentPlan = tup.Item1;
-            allStates = tup.Item2;
+            currentState.SatisfiedActions = null;
+            currentPlan = DFSPlan.plan(currentState, 4);
             currentActionIndex = 0;
+
+            Debug.Log("DFS Plan:");
+            foreach (GOAP.Action action in currentPlan)
+                Debug.Log(action);
+            Debug.Log("");
         };
 
         if (currentPlan.Length != 0)
         {
             GOAP.Action currentAction = currentPlan[currentActionIndex];
-            if (currentPlan is null)
+            if (currentAction is null)
             {
                 currentActionIndex++;
                 return;
             }
 
-            if (currentAction.Name == "Move to Mine" || currentAction.Name == "Move to Factory")
+            if (currentAction.Name.Split(' ')[0].Trim() == "Move")
             {
                 // Make sure entity isn't trying to mine
                 if (robot.IsMining)
@@ -233,10 +166,10 @@ public class GOAPManager : MonoBehaviour
                     targetSet = false;
                 }
             }
-            else if (currentAction.Name == "Mine")
+            else if (currentAction.Name.Split(' ')[0].Trim() == "Mine")
             {
                 FloatGoal itemGoal = (FloatGoal)currentAction.FloatEffects.Keys.First();
-                ItemType itemType = Enum.Parse<ItemType>(itemGoal.Name.Split('-')[1].Trim());
+                ItemType itemType = Enum.Parse<ItemType>(itemGoal.Name);
 
                 // Start mining
                 if (!robot.IsMining)
@@ -249,7 +182,7 @@ public class GOAPManager : MonoBehaviour
                     currentActionIndex++;
                 }
             }
-            else if (currentAction.Name == "Craft")
+            else if (currentAction.Name.Split(' ')[0].Trim() == "Craft")
             {
                 // Make sure entity isn't trying to mine
                 if (robot.IsMining)
@@ -259,7 +192,7 @@ public class GOAPManager : MonoBehaviour
                 robot.PlaceItems();
                 currentActionIndex++;
             }
-            else if (currentAction.Name == "Retrieve")
+            else if (currentAction.Name.Split(' ')[0].Trim() == "Retrieve")
             {
                 // Make sure entity isn't trying to mine
                 if (robot.IsMining)

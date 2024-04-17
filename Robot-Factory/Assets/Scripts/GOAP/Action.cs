@@ -33,24 +33,8 @@ namespace GOAP
             foreach (Goal goal in BoolPreconditions.Keys)
                 if (state.BoolGoals[goal] != BoolPreconditions[goal]) return false;
 
-            bool anyTrue = false;
             foreach (Goal goal in PositionPreconditions.Keys)
-            {
-                if (PositionPreconditionsUseOr)
-                {
-                    if (state.PositionGoals[goal] == PositionPreconditions[goal])
-                        anyTrue = true;
-                }
-                else
-                {
-                    if (state.PositionGoals[goal] != PositionPreconditions[goal]) return false;
-                }
-            }
-
-            if (PositionPreconditionsUseOr)
-            {
-                return anyTrue;
-            }
+                if (Vector2.Distance(state.PositionGoals[goal], PositionPreconditions[goal]) > 1.0f) return false;
 
             return true;
         }
