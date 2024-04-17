@@ -20,6 +20,7 @@ public class GOAPManager : MonoBehaviour
     private static Dictionary<ItemType, FloatGoal> craftedGoals = new Dictionary<ItemType, FloatGoal>();
 
     bool targetSet = false;
+    PositionGoal robotPositionGoal = new PositionGoal("Robot Position", 2);
 
     // Start is called before the first frame update
     void Start()
@@ -35,7 +36,6 @@ public class GOAPManager : MonoBehaviour
         currentState = new WorldState();
         currentState.Debug = false;
 
-        PositionGoal robotPositionGoal = new PositionGoal("Robot Position", 2);
         currentState.PositionGoals.Add(robotPositionGoal, robot.transform.position);
 
         foreach (ItemType item in Enum.GetValues(typeof(ItemType)))
@@ -207,34 +207,4 @@ public class GOAPManager : MonoBehaviour
 
         }
     }
-
-    // TODO: Look into Action.GetSuccessor
-    // void UpdateState(WorldState state, GOAP.Action action)
-    // {
-    //     foreach (var goal in itemGoals)
-    //     {
-    //         state.FloatGoals[goal.Value] += action.FloatEffects[goal.Value];
-    //     }
-
-    //     foreach (var goal in minePositions)
-    //     {
-    //         foreach (var posGoal in goal.Value)
-    //         {
-    //             state.PositionGoals[posGoal] = action.PositionEffects[posGoal];
-    //         }
-    //     }
-
-    //     foreach (var goal in factoryPositions)
-    //     {
-    //         foreach (var posGoal in goal.Value)
-    //         {
-    //             state.PositionGoals[posGoal] = action.PositionEffects[posGoal];
-    //         }
-    //     }
-
-    //     foreach (var goal in craftedGoals)
-    //     {
-    //         state.FloatGoals[goal.Value] += action.FloatEffects[goal.Value];
-    //     }
-    // }
 }
