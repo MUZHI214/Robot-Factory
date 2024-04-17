@@ -85,7 +85,25 @@ public class Entity : MonoBehaviour
     public void RetrieveItems()
     {
         if (factory)
-            items[factory.itemToProduce] += factory.GetNumProduced(Math.Min(maxItems - items[factory.itemToProduce], maxItems));
+            items[factory.itemToProduce] += factory.GetNumProduced(1);
+    }
+
+    public void PlaceItems()
+    {
+        if (factory)
+        {
+            var types = Enum.GetValues(typeof(ItemType));
+            foreach (ItemType i in types)
+            {
+                var recipe = Item.recipes[factory.itemToProduce];
+                int numToAdd = Mathf.Min(items[i], recipe.ContainsKey(i) ? recipe[i] : 0);
+
+                if (factory.AddItems(i, numToAdd))
+                {
+                    items[i] -= numToAdd;
+                }
+            }
+        }
     }
 
     public void MoveTowards(Vector3 targetPosition)

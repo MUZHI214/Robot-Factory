@@ -29,19 +29,19 @@ public class FactoryManager : MonoBehaviour
         if (Instance is null)
             Instance = this;
 
-        foreach (ItemType itemType in Enum.GetValues(typeof(ItemType)))
-        {
-            itemMines.Add(itemType, new List<ItemMine>());
-            factories.Add(itemType, new List<Factory>());
-        }
-
         foreach (var mine in allMines)
         {
+            if (!itemMines.ContainsKey(mine.itemType))
+                itemMines.Add(mine.itemType, new List<ItemMine>());
+
             itemMines[mine.itemType].Add(mine);
         }
 
         foreach (var factory in allFactories)
         {
+            if (!factories.ContainsKey(factory.itemToProduce))
+                factories.Add(factory.itemToProduce, new List<Factory>());
+
             factories[factory.itemToProduce].Add(factory);
         }
 

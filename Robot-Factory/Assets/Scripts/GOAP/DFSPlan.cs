@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
+using Unity.VisualScripting;
 using UnityEngine;
 
 namespace GOAP
 {
     public static class DFSPlan
     {
-        public static Action[] plan(WorldState state, int maxDepth)
+        public static Tuple<Action[], WorldState[]> plan(WorldState state, int maxDepth)
         {
             Stopwatch watch = new Stopwatch();
             watch.Start();
@@ -72,7 +73,7 @@ namespace GOAP
             watch.Stop();
             if (state.Debug) UnityEngine.Debug.Log("DFS Loop Ended, Total Time: " + (watch.ElapsedMilliseconds / 1000f).ToString() + " seconds" + Environment.NewLine);
 
-            return currentPlan;
+            return new Tuple<Action[], WorldState[]>(currentPlan, states);
         }
     }
 }

@@ -40,6 +40,13 @@ public class Factory : MonoBehaviour
             hasEnoughItems.Add(pair.Key, false);
             heldItems.Add(pair.Key, 0);
         }
+
+        var pathfinder = Pathfinding.Instance;
+
+        var pos = pathfinder.GetGrid().GetWorldPosition(Mathf.FloorToInt(this.gridPositon.x), Mathf.FloorToInt(this.gridPositon.y));
+        pos.x += pathfinder.GetGrid().GetCellSize() / 2;
+        pos.y += pathfinder.GetGrid().GetCellSize() / 2;
+        this.transform.position = pos;
     }
 
 
