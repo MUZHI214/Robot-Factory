@@ -56,7 +56,6 @@ public class Entity : MonoBehaviour
                 if (mineTimer <= 0)
                 {
                     items[itemMine.itemType] += 1;
-                    Debug.Log(items[itemMine.itemType]);
                     mineTimer = itemMine.mineTime;
                     return;
                 }
@@ -94,22 +93,26 @@ public class Entity : MonoBehaviour
         return false;
     }
 
-    public void PlaceItems()
+    public bool PlaceItems()
     {
         if (factory)
         {
-            var types = Enum.GetValues(typeof(ItemType));
-            foreach (ItemType i in types)
+            bool anyItemAdded = false;
+            foreach (var (item, amount) in Item.recipes[factory.itemToProduce])
             {
-                var recipe = Item.recipes[factory.itemToProduce];
-                int numToAdd = Mathf.Min(items[i], recipe.ContainsKey(i) ? recipe[i] : 0);
+                int numToAdd = Mathf.Min(items[item], amount);
 
-                if (factory.AddItems(i, numToAdd))
+                if (factory.AddItems(item, numToAdd))
                 {
-                    items[i] -= numToAdd;
+                    anyItemAdded = true;
+                    items[item] -= numToAdd;
                 }
             }
+
+            return anyItemAdded;
         }
+
+        return false;
     }
 
     public void MoveTowards(Vector3 targetPosition)

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace GOAP
@@ -15,7 +16,9 @@ namespace GOAP
 
         public override float GetContentment(WorldState state)
         {
-            var dist = Vector2.Distance(state.PositionGoals[this], Position) / 100;
+            var dist = Vector2.Distance(state.PositionGoals[this], Position);
+            if (dist <= 0) dist = 0;
+            else dist = 1f / dist;
             return dist * Contentment;
         }
     }

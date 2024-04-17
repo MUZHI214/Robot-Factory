@@ -7,6 +7,7 @@ namespace GOAP
     public class Action
     {
         public string Name { get; } = "";
+        public Robot Robot { get; } = null;
         public Dictionary<Goal, float> FloatPreconditions { get; set; } = new Dictionary<Goal, float>();
         public Dictionary<Goal, Tuple<float, float>> FloatRangePreconditions { get; set; } = new Dictionary<Goal, Tuple<float, float>>();
         public Dictionary<Goal, bool> BoolPreconditions { get; set; } = new Dictionary<Goal, bool>();
@@ -17,9 +18,10 @@ namespace GOAP
 
         public bool PositionPreconditionsUseOr = false;
 
-        public Action(string name)
+        public Action(string name, Robot robot)
         {
             Name = name;
+            Robot = robot;
         }
 
         public bool PreconditionsSatisfied(WorldState state)

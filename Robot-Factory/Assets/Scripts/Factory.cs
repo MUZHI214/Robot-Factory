@@ -13,6 +13,8 @@ public class Factory : MonoBehaviour
     public float craftTime = 2;
     float craftTimer = 0;
 
+    public int numInProgress = 0;
+
     Dictionary<ItemType, int> recipe = new Dictionary<ItemType, int>();
 
     Dictionary<ItemType, int> heldItems = new Dictionary<ItemType, int>();
@@ -74,6 +76,7 @@ public class Factory : MonoBehaviour
                 }
 
                 producedNum += 1;
+                numInProgress--;
             }
 
             craftTimer -= Time.deltaTime;
@@ -89,8 +92,9 @@ public class Factory : MonoBehaviour
 
     public bool AddItems(ItemType itemType, int amount)
     {
+        Debug.Log(itemType + ": " + amount);
         // Check if the recipe needs this item
-        if (recipe.ContainsKey(itemType))
+        if (recipe.ContainsKey(itemType) && amount > 0)
         {
             // If it's needed then add it to the factory's inventory
             heldItems[itemType] += amount;
@@ -109,6 +113,7 @@ public class Factory : MonoBehaviour
 
             if (canCraft)
             {
+                numInProgress++;
                 progressBar.gameObject.SetActive(true);
             }
 

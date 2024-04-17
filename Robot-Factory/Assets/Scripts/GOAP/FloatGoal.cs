@@ -10,7 +10,7 @@
 
         public override float GetContentment(WorldState state)
         {
-            return state.FloatGoals[this] * Contentment;
+            return Contentment;
         }
     }
 }
