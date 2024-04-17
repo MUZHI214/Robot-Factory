@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using GOAP;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class GOAPManager : MonoBehaviour
@@ -20,7 +19,7 @@ public class GOAPManager : MonoBehaviour
     private static Dictionary<ItemType, FloatGoal> craftedGoals = new Dictionary<ItemType, FloatGoal>();
 
     bool targetSet = false;
-    PositionGoal robotPositionGoal = new PositionGoal("Robot Position", 2);
+    PositionGoal robotPositionGoal;
 
     // Start is called before the first frame update
     void Start()
@@ -36,6 +35,7 @@ public class GOAPManager : MonoBehaviour
         currentState = new WorldState();
         currentState.Debug = false;
 
+        robotPositionGoal = new PositionGoal("Robot Position", 2, robot.transform.position);
         currentState.PositionGoals.Add(robotPositionGoal, robot.transform.position);
 
         foreach (ItemType item in Enum.GetValues(typeof(ItemType)))
@@ -46,9 +46,12 @@ public class GOAPManager : MonoBehaviour
                 contentment = 10 + Item.recipes[item].Count + 1;
 
                 // Keep track of amount of crafted items sitting at factory
-                var craftedGoal = new FloatGoal("Crafted " + item.ToString(), contentment - 1);
-                craftedGoals.Add(item, craftedGoal);
-                currentState.FloatGoals.Add(craftedGoal, 0);
+                if (!craftedGoals.ContainsKey(item))
+                {
+                    var craftedGoal = new FloatGoal("Crafted " + item.ToString(), contentment - 1);
+                    craftedGoals.Add(item, craftedGoal);
+                }
+                currentState.FloatGoals.Add(craftedGoals[item], 0);
             }
 
             // Keep track of items in inventory
@@ -103,6 +106,8 @@ public class GOAPManager : MonoBehaviour
                 factoryDomain.Actions.Add(craft);
                 factoryDomain.Actions.Add(retrieve);
             }
+
+            currentState.FloatGoals[craftedGoals[factoryType]] = factoryList.Sum((fact) => fact.producedNum);
         }
 
         currentState.Domain = factoryDomain;
@@ -205,6 +210,7 @@ public class GOAPManager : MonoBehaviour
                 }
             }
 
+            robotPositionGoal.Position = robot.transform.position;
         }
     }
 }

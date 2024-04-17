@@ -1,4 +1,7 @@
-﻿namespace GOAP
+﻿using System.Diagnostics;
+using UnityEngine;
+
+namespace GOAP
 {
     public static class DFSPlan
     {
