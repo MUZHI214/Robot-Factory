@@ -265,9 +265,11 @@ public class GOAPManager : MonoBehaviour
                 if (robot.IsMining)
                     robot.StopMining();
 
-                currentState = currentAction.GetSuccessor(currentState);
-                robot.RetrieveItems();
-                currentActionIndex++;
+                if (robot.RetrieveItems())
+                {
+                    currentState = currentAction.GetSuccessor(currentState);
+                    currentActionIndex++;
+                }
             }
 
         }
