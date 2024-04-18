@@ -10,7 +10,6 @@ namespace GOAP
         public Domain Domain { get; set; }
         public Dictionary<Goal, float> FloatGoals { get; set; } = new Dictionary<Goal, float>();
         public Dictionary<Goal, bool> BoolGoals { get; set; } = new Dictionary<Goal, bool>();
-        public Dictionary<Goal, Vector2> PositionGoals { get; set; } = new Dictionary<Goal, Vector2>();
         public Stack<Action> SatisfiedActions { get; set; } = null;
 
         public Action NextAction()
@@ -42,9 +41,6 @@ namespace GOAP
             foreach (Goal goal in BoolGoals.Keys)
                 contentment += goal.GetContentment(this);
 
-            foreach (Goal goal in PositionGoals.Keys)
-                contentment += goal.GetContentment(this);
-
             return contentment;
         }
 
@@ -54,7 +50,6 @@ namespace GOAP
             stateClone.Domain = Domain;
             stateClone.FloatGoals = new Dictionary<Goal, float>(FloatGoals);
             stateClone.BoolGoals = new Dictionary<Goal, bool>(BoolGoals);
-            stateClone.PositionGoals = new Dictionary<Goal, Vector2>(PositionGoals);
             return stateClone;
         }
 
@@ -67,9 +62,6 @@ namespace GOAP
 
             foreach (Goal goal in BoolGoals.Keys)
                 output += goal + ": " + BoolGoals[goal].ToString() + Environment.NewLine;
-
-            foreach (Goal goal in PositionGoals.Keys)
-                output += goal + ": " + PositionGoals[goal].ToString() + Environment.NewLine;
 
             if (SatisfiedActions == null) GenerateActions();
 

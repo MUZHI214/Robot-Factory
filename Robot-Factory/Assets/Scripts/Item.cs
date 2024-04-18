@@ -9,6 +9,7 @@ public enum ItemType
     Tool,
     StoneTool,
     WoodTool,
+    MultiTool
 }
 
 public class Item
@@ -27,6 +28,7 @@ public class Item
         [ItemType.Wood] = null,
         [ItemType.Tool] = new Dictionary<ItemType, int>() { [ItemType.Wood] = 2 },
         [ItemType.StoneTool] = new Dictionary<ItemType, int>() { [ItemType.Rock] = 2, [ItemType.Tool] = 1 },
-        [ItemType.WoodTool] = new Dictionary<ItemType, int>() { [ItemType.Wood] = 2, [ItemType.Tool] = 1 },
+        [ItemType.WoodTool] = new Dictionary<ItemType, int>() { [ItemType.Wood] = 1, [ItemType.Tool] = 1 },
+        [ItemType.MultiTool] = new Dictionary<ItemType, int>() { [ItemType.WoodTool] = 1, [ItemType.StoneTool] = 1 },
     };
 }
