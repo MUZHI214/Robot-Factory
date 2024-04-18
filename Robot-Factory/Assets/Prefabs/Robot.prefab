@@ -425,6 +425,7 @@ MonoBehaviour:
   speed: 10
   progressBar: {fileID: 2894429237687643722}
   itemText: {fileID: 6287206118903333130}
+  towerPrefab: {fileID: 497251256647719298, guid: 17c4336575ae9d94e8a407126fb15711, type: 3}
 --- !u!1 &4301587479132580001
 GameObject:
   m_ObjectHideFlags: 0

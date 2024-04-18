@@ -166,7 +166,9 @@ public class Robot : Entity
                             Pathfinding.Instance.GetGrid().GetXY(allTowers[j].transform.position, out gridX, out gridY);
                             if (neighbors[i].x != gridX || neighbors[i].y != gridY)
                             {
-                                towerPosition = allTowers[j].transform.position;
+                                towerPosition = Pathfinding.Instance.GetGrid().GetWorldPosition(neighbors[i].x, neighbors[i].y);
+                                towerPosition.x += Pathfinding.Instance.GetGrid().GetCellSize() / 2;
+                                towerPosition.y += Pathfinding.Instance.GetGrid().GetCellSize() / 2;
                                 break;
                             }
                         }
@@ -178,7 +180,7 @@ public class Robot : Entity
 
                 if (towerPosition != Vector2.zero)
                 {
-                    //Instantiate(towerPrefab, towerPosition, Quaternion.identity, null);
+                    // Instantiate(towerPrefab, towerPosition, Quaternion.identity, null);
                     GOAPManager.currentState = currentAction.GetSuccessor(GOAPManager.currentState);
                 }
                 CurrentPlan.Dequeue();
@@ -197,21 +199,6 @@ public class Robot : Entity
             }
         }
 
-    }
-
-    private void RecreatePlan()
-    {
-        CurrentPlan.Clear();
-        GOAPManager.currentState.Domain = this.RobotDomain;
-
-        var planArray = DFSPlan.plan(GOAPManager.currentState, GOAPManager.PlanDepth);
-        Debug.Log(this.name + " DFS Plan:");
-        for (int i = 0; i < planArray.Length; i++)
-        {
-            CurrentPlan.Enqueue(planArray[i]);
-            Debug.Log(planArray[i]);
-        }
-        Debug.Log("");
     }
 
     private void Movement()
