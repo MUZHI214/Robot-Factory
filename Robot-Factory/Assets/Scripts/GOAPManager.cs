@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using GOAP;
 using Unity.Content;
@@ -14,6 +15,10 @@ public class GOAPManager : MonoBehaviour
 
     Dictionary<Robot, Dictionary<ItemType, FloatGoal>> itemGoals = new();
     Dictionary<Factory, FloatGoal> craftedGoals = new();
+    FloatGoal placedTowers = new("Placed Towers", 1000);
+
+    Stopwatch towerTimer = new();
+
 
     // Start is called before the first frame update
     void Start()
@@ -21,6 +26,7 @@ public class GOAPManager : MonoBehaviour
         // Create initial world state
         currentState = new WorldState();
         currentState.Debug = false;
+        currentState.FloatGoals.Add(placedTowers, 0);
 
         foreach (Robot robot in factoryManager.robots)
         {
@@ -82,6 +88,14 @@ public class GOAPManager : MonoBehaviour
                 }
             }
 
+            GOAP.Action placeTower = new("Place Tower", robot);
+            placeTower.FloatEffects.Add(placedTowers, 1);
+            placeTower.FloatEffects.Add(itemGoals[robot][ItemType.Tower], -1);
+            placeTower.FloatRangePreconditions.Add(itemGoals[robot][ItemType.Tower], new(1, 20));
+            placeTower.FloatRangePreconditions.Add(placedTowers, new(0, 20));
+
+            factoryDomain.Actions.Add(placeTower);
+
             robot.CurrentPlan = new();
         }
 
@@ -91,15 +105,13 @@ public class GOAPManager : MonoBehaviour
             currentState.Domain = robot.RobotDomain;
 
             var planArray = DFSPlan.plan(currentState, PlanDepth);
-            Debug.Log("DFS Plan:");
             for (int i = 0; i < planArray.Length; i++)
             {
                 if (planArray[i] is null) continue;
                 planArray[i].Robot.CurrentPlan.Enqueue(planArray[i]);
-                Debug.Log(planArray[i]);
             }
-            Debug.Log("");
         }
+        towerTimer.Start();
     }
 
     // Update is called once per frame
@@ -112,6 +124,12 @@ public class GOAPManager : MonoBehaviour
             {
                 currentState.FloatGoals[craftedGoals[factory]] = factory.producedNum;
             }
+        }
+
+        if (currentState.FloatGoals[placedTowers] >= 10 && towerTimer.IsRunning)
+        {
+            towerTimer.Stop();
+            UnityEngine.Debug.Log(towerTimer.Elapsed);
         }
 
         // if (factoryManager.robots.All(robot => robot.CurrentPlan.Count == 0))

@@ -20,6 +20,9 @@ public class Robot : Entity
 
     private float retrieveTimer = 0;
 
+    [SerializeField]
+    private GameObject towerPrefab;
+
     // Update is called once per frame
     public override void Update()
     {
@@ -138,6 +141,48 @@ public class Robot : Entity
                     retrieveTimer += Time.deltaTime;
                 }
             }
+            else if (currentAction.Name == "Place Tower")
+            {
+                var towerPosition = Vector2.zero;
+                var allTowers = GameObject.FindObjectsOfType<Tower>();
+                // TODO: find a valid place to put a tower and Instantiate it at that location
+                foreach (var point in TDManager.main.path)
+                {
+                    int gridX = 0;
+                    int gridY = 0;
+                    Pathfinding.Instance.GetGrid().GetXY(point.position, out gridX, out gridY);
+                    var neighbors = Pathfinding.Instance.GetNeighbourList(
+                        Pathfinding.Instance.GetNode(
+                            gridX,
+                            gridY
+                        )
+                    );
+
+                    for (int i = 0; i < neighbors.Count; i++)
+                    {
+                        for (int j = 0; j < allTowers.Length; j++)
+                        {
+
+                            Pathfinding.Instance.GetGrid().GetXY(allTowers[j].transform.position, out gridX, out gridY);
+                            if (neighbors[i].x != gridX || neighbors[i].y != gridY)
+                            {
+                                towerPosition = allTowers[j].transform.position;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (towerPosition != Vector2.zero)
+                        break;
+                }
+
+                if (towerPosition != Vector2.zero)
+                {
+                    //Instantiate(towerPrefab, towerPosition, Quaternion.identity, null);
+                    GOAPManager.currentState = currentAction.GetSuccessor(GOAPManager.currentState);
+                }
+                CurrentPlan.Dequeue();
+            }
         }
         else
         {
@@ -146,13 +191,10 @@ public class Robot : Entity
             GOAPManager.currentState.Domain = this.RobotDomain;
 
             var planArray = DFSPlan.plan(GOAPManager.currentState, GOAPManager.PlanDepth);
-            Debug.Log(this.name + " DFS Plan:");
             for (int i = 0; i < planArray.Length; i++)
             {
                 CurrentPlan.Enqueue(planArray[i]);
-                Debug.Log(planArray[i]);
             }
-            Debug.Log("");
         }
 
     }
