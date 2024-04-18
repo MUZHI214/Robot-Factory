@@ -14,7 +14,6 @@ public class GOAPManager : MonoBehaviour
     Dictionary<Robot, Dictionary<ItemType, FloatGoal>> itemGoals = new();
     Dictionary<ItemType, FloatGoal> craftedGoals = new();
     Dictionary<ItemType, FloatGoal> beingCraftedGoals = new();
-    public static Dictionary<Robot, PositionGoal> robotPositions = new();
 
     // Start is called before the first frame update
     void Start()
@@ -27,10 +26,6 @@ public class GOAPManager : MonoBehaviour
         {
             itemGoals.Add(robot, new());
             Domain factoryDomain = robot.RobotDomain = new();
-
-            var robotPositionGoal = new PositionGoal("Position " + robot.name, 2, robot.transform.position);
-            robotPositions.Add(robot, robotPositionGoal);
-            currentState.PositionGoals.Add(robotPositionGoal, robot.transform.position);
 
             foreach (ItemType item in Enum.GetValues(typeof(ItemType)))
             {
@@ -62,16 +57,10 @@ public class GOAPManager : MonoBehaviour
             {
                 foreach (var mine in mineList)
                 {
-                    GOAP.Action goToMine = new("Move to Mine - " + mineType + " " + robot.name, robot);
-                    goToMine.PositionEffects.Add(robotPositionGoal, mine.transform.position);
-                    goToMine.FloatRangePreconditions.Add(itemGoals[robot][mineType], new(0, 5)); // Only try to go to mine when not full
-
                     GOAP.Action mineAction = new("Mine " + mineType + " " + robot.name, robot);
                     mineAction.FloatEffects.Add(itemGoals[robot][mineType], 1);
-                    mineAction.PositionPreconditions.Add(robotPositionGoal, mine.transform.position);
                     mineAction.FloatRangePreconditions.Add(itemGoals[robot][mineType], new(0, 5)); // Only try to actually mine when not full
 
-                    factoryDomain.Actions.Add(goToMine);
                     factoryDomain.Actions.Add(mineAction);
                 }
             }
@@ -81,27 +70,20 @@ public class GOAPManager : MonoBehaviour
             {
                 foreach (var factory in factoryList)
                 {
-                    GOAP.Action goToFactory = new("Move to Factory - " + factoryType + " " + robot.name, robot);
-                    goToFactory.PositionEffects.Add(robotPositionGoal, factory.transform.position);
-
                     GOAP.Action craft = new("Craft " + factoryType + " " + robot.name, robot);
-                    craft.PositionPreconditions.Add(robotPositionGoal, factory.transform.position);
                     craft.FloatEffects.Add(beingCraftedGoals[factoryType], 1);
 
                     GOAP.Action retrieve = new("Retrieve " + factoryType + " " + robot.name, robot);
                     retrieve.FloatEffects.Add(craftedGoals[factoryType], -1);
                     retrieve.FloatEffects.Add(itemGoals[robot][factoryType], 1);
-                    retrieve.PositionPreconditions.Add(robotPositionGoal, factory.transform.position);
                     retrieve.FloatRangePreconditions.Add(craftedGoals[factoryType], new(1, 20));
 
                     foreach (var recipe in Item.recipes[factoryType])
                     {
-                        goToFactory.FloatRangePreconditions.Add(itemGoals[robot][recipe.Key], new(recipe.Value, 6));
                         craft.FloatEffects.Add(itemGoals[robot][recipe.Key], -recipe.Value);
                         craft.FloatRangePreconditions.Add(itemGoals[robot][recipe.Key], new(recipe.Value, 6));
                     }
 
-                    factoryDomain.Actions.Add(goToFactory);
                     factoryDomain.Actions.Add(craft);
                     factoryDomain.Actions.Add(retrieve);
                 }

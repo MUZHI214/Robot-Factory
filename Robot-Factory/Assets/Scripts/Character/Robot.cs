@@ -39,65 +39,110 @@ public class Robot : Entity
                 return;
             }
 
-            if (currentAction.Name.Split(' ')[0].Trim() == "Move")
-            {
-                // Make sure entity isn't trying to mine
-                if (currentAction.Robot.IsMining)
-                    currentAction.Robot.StopMining();
+            ItemType itemType = Enum.Parse<ItemType>(currentAction.Name.Split(' ')[1].Trim());
 
-                // Make sure target position is only set one time
-                if (!targetSet)
-                {
-                    currentAction.Robot.SetTargetPosition(currentAction.PositionEffects.Values.First());
-                    targetSet = true;
-                }
-                if (!currentAction.Robot.IsMoving)
-                {
-                    GOAPManager.currentState = currentAction.GetSuccessor(GOAPManager.currentState);
-                    CurrentPlan.Dequeue();
-                    targetSet = false;
-                }
-            }
-            else if (currentAction.Name.Split(' ')[0].Trim() == "Mine")
+            if (currentAction.Name.Split(' ')[0].Trim() == "Mine")
             {
                 FloatGoal itemGoal = (FloatGoal)currentAction.FloatEffects.Keys.First();
-                ItemType itemType = Enum.Parse<ItemType>(itemGoal.Name.Split(' ')[0].Trim());
 
-                // Start mining
-                if (!currentAction.Robot.IsMining)
-                    currentAction.Robot.StartMining();
-
-                if (currentAction.Robot.items[itemType] > GOAPManager.currentState.FloatGoals[itemGoal])
+                if (!targetSet)
                 {
+                    var closestDist = float.MaxValue;
+                    ItemMine closestMine = null;
+                    FactoryManager.Instance.itemMines[itemType].ForEach(mine =>
+                    {
+                        var distToMine = Vector2.Distance(this.transform.position, mine.transform.position);
+                        if (distToMine < closestDist)
+                        {
+                            closestDist = distToMine;
+                            closestMine = mine;
+                        }
+                    });
+
+                    if (closestMine is not null)
+                    {
+                        SetTargetPosition(closestMine.transform.position);
+                        targetSet = true;
+                    }
+                } // Only reach here once the robot can start mining
+                else if (!this.IsMining && currentPathIndex >= pathVectorList.Count)
+                {
+                    // Start mining
+                    this.StartMining();
+                }
+                else if (this.items[itemType] > GOAPManager.currentState.FloatGoals[itemGoal])
+                {
+                    targetSet = false;
                     GOAPManager.currentState = currentAction.GetSuccessor(GOAPManager.currentState);
-                    currentAction.Robot.StopMining();
+                    this.StopMining();
                     CurrentPlan.Dequeue();
                 }
             }
             else if (currentAction.Name.Split(' ')[0].Trim() == "Craft")
             {
                 // Make sure entity isn't trying to mine
-                if (currentAction.Robot.IsMining)
-                    currentAction.Robot.StopMining();
+                if (this.IsMining)
+                    this.StopMining();
 
-                if (currentAction.Robot.PlaceItems())
+                if (!targetSet)
                 {
+                    var closestDist = float.MaxValue;
+                    Factory closestFact = null;
+                    FactoryManager.Instance.factories[itemType].ForEach(fact =>
+                    {
+                        var distToFact = Vector2.Distance(this.transform.position, fact.transform.position);
+                        if (distToFact < closestDist)
+                        {
+                            closestDist = distToFact;
+                            closestFact = fact;
+                        }
+                    });
+
+                    if (closestFact is not null)
+                    {
+                        SetTargetPosition(closestFact.transform.position);
+                        targetSet = true;
+                    }
+                }  // Only reach here once the robot can start crafting
+                else if (currentPathIndex >= pathVectorList.Count && this.PlaceItems())
+                {
+                    targetSet = false;
                     GOAPManager.currentState = currentAction.GetSuccessor(GOAPManager.currentState);
+                    CurrentPlan.Dequeue();
                 }
-                CurrentPlan.Dequeue();
             }
             else if (currentAction.Name.Split(' ')[0].Trim() == "Retrieve")
             {
                 // Make sure entity isn't trying to mine
-                if (currentAction.Robot.IsMining)
-                    currentAction.Robot.StopMining();
+                if (this.IsMining)
+                    this.StopMining();
 
-                if (currentAction.Robot.RetrieveItems())
+                if (!targetSet)
                 {
-                    GOAPManager.currentState = currentAction.GetSuccessor(GOAPManager.currentState);
-                }
+                    var closestDist = float.MaxValue;
+                    Factory closestFact = null;
+                    FactoryManager.Instance.factories[itemType].ForEach(fact =>
+                    {
+                        var distToFact = Vector2.Distance(this.transform.position, fact.transform.position);
+                        if (distToFact < closestDist)
+                        {
+                            closestDist = distToFact;
+                            closestFact = fact;
+                        }
+                    });
 
-                CurrentPlan.Dequeue();
+                    if (closestFact is not null)
+                    {
+                        SetTargetPosition(closestFact.transform.position);
+                        targetSet = true;
+                    }
+                } // Only reach here once the robot can start crafting
+                else if (currentPathIndex >= pathVectorList.Count && this.RetrieveItems())
+                {
+                    targetSet = false;
+                    GOAPManager.currentState = currentAction.GetSuccessor(GOAPManager.currentState);
+                    CurrentPlan.Dequeue();
+                }
             }
         }
         else
@@ -116,7 +161,6 @@ public class Robot : Entity
             Debug.Log("");
         }
 
-        GOAPManager.currentState.PositionGoals[GOAPManager.robotPositions[this]] = this.transform.position;
     }
 
     private void RecreatePlan()
@@ -136,7 +180,7 @@ public class Robot : Entity
 
     private void Movement()
     {
-        if (pathVectorList != null)
+        if (pathVectorList != null && pathVectorList.Count > 0)
         {
             Vector3 targetPosition = pathVectorList[currentPathIndex];
 
@@ -166,7 +210,7 @@ public class Robot : Entity
 
     private void StopMoving()
     {
-        pathVectorList = null;
+        pathVectorList.Clear();
         IsMoving = false;
     }
 
