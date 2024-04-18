@@ -29,19 +29,19 @@ public class GOAPManager : MonoBehaviour
 
             foreach (ItemType item in Enum.GetValues(typeof(ItemType)))
             {
-                int contentment = 0;
+                int contentment = 1;
                 if (Item.recipes[item] is not null)
                 {
-                    contentment = 10 + Item.recipes[item].Count + 1;
+                    contentment = 10 * Item.recipes[item].Count;
 
                     // Keep track of amount of crafted items sitting at factory
                     if (!craftedGoals.ContainsKey(item))
                     {
-                        var beingCraftedGoal = new FloatGoal("Being Crafted " + item.ToString(), contentment - 5);
+                        var beingCraftedGoal = new FloatGoal("Being Crafted " + item.ToString(), 2);
                         beingCraftedGoals.Add(item, beingCraftedGoal);
                         currentState.FloatGoals.Add(beingCraftedGoals[item], 0);
 
-                        var craftedGoal = new FloatGoal("Crafted " + item.ToString(), contentment - 5);
+                        var craftedGoal = new FloatGoal("Crafted " + item.ToString(), 2);
                         craftedGoals.Add(item, craftedGoal);
                         currentState.FloatGoals.Add(craftedGoals[item], 0);
                     }

@@ -137,11 +137,17 @@ public class Robot : Entity
                         targetSet = true;
                     }
                 } // Only reach here once the robot can start crafting
-                else if (currentPathIndex >= pathVectorList.Count && this.RetrieveItems())
+                else if (currentPathIndex >= pathVectorList.Count)
                 {
                     targetSet = false;
-                    GOAPManager.currentState = currentAction.GetSuccessor(GOAPManager.currentState);
-                    CurrentPlan.Dequeue();
+                    // If the bot fails to retirieve items, recreate the plan
+                    if (this.RetrieveItems())
+                    {
+                        GOAPManager.currentState = currentAction.GetSuccessor(GOAPManager.currentState);
+                        CurrentPlan.Dequeue();
+                    }
+                    else
+                        CurrentPlan.Clear();
                 }
             }
         }
