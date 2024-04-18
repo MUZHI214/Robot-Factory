@@ -8,6 +8,7 @@ namespace GOAP
     {
         public string Name { get; } = "";
         public Robot Robot { get; } = null;
+        public Vector2 TargetPosition { get; set; } = Vector2.zero;
         public Dictionary<Goal, float> FloatPreconditions { get; set; } = new Dictionary<Goal, float>();
         public Dictionary<Goal, Tuple<float, float>> FloatRangePreconditions { get; set; } = new Dictionary<Goal, Tuple<float, float>>();
         public Dictionary<Goal, bool> BoolPreconditions { get; set; } = new Dictionary<Goal, bool>();

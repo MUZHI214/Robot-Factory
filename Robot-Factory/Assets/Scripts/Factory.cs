@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 public class Factory : MonoBehaviour
 {
-    public ItemType itemToProduce = ItemType.Tool;
+    public ItemType itemToProduce = ItemType.TowerBase;
     public int producedNum = 0;
 
     public float craftTime = 2;

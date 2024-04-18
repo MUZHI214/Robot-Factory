@@ -1,4 +1,6 @@
-﻿namespace GOAP
+﻿using UnityEngine;
+
+namespace GOAP
 {
     public class FloatGoal : Goal
     {
@@ -10,7 +12,7 @@
 
         public override float GetContentment(WorldState state)
         {
-            return Contentment;
+            return Mathf.Max(Contentment - state.FloatGoals[this], 0);
         }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using GOAP;
+using Unity.Content;
 using UnityEngine;
 
 public class GOAPManager : MonoBehaviour
@@ -12,8 +13,7 @@ public class GOAPManager : MonoBehaviour
     public static WorldState currentState = null;
 
     Dictionary<Robot, Dictionary<ItemType, FloatGoal>> itemGoals = new();
-    Dictionary<ItemType, FloatGoal> craftedGoals = new();
-    Dictionary<ItemType, FloatGoal> beingCraftedGoals = new();
+    Dictionary<Factory, FloatGoal> craftedGoals = new();
 
     // Start is called before the first frame update
     void Start()
@@ -29,23 +29,11 @@ public class GOAPManager : MonoBehaviour
 
             foreach (ItemType item in Enum.GetValues(typeof(ItemType)))
             {
-                int contentment = 1;
+                int contentment = 0;
                 if (Item.recipes[item] is not null)
-                {
-                    contentment = 10 * Item.recipes[item].Count;
-
-                    // Keep track of amount of crafted items sitting at factory
-                    if (!craftedGoals.ContainsKey(item))
-                    {
-                        var beingCraftedGoal = new FloatGoal("Being Crafted " + item.ToString(), 2);
-                        beingCraftedGoals.Add(item, beingCraftedGoal);
-                        currentState.FloatGoals.Add(beingCraftedGoals[item], 0);
-
-                        var craftedGoal = new FloatGoal("Crafted " + item.ToString(), 2);
-                        craftedGoals.Add(item, craftedGoal);
-                        currentState.FloatGoals.Add(craftedGoals[item], 0);
-                    }
-                }
+                    contentment = 10;
+                if (item == ItemType.Tower)
+                    contentment = 100;
 
                 // Keep track of items in inventory
                 var itemGoal = new FloatGoal(item.ToString() + " " + robot.name, contentment);
@@ -55,28 +43,33 @@ public class GOAPManager : MonoBehaviour
 
             foreach (var (mineType, mineList) in factoryManager.itemMines)
             {
-                foreach (var mine in mineList)
-                {
-                    GOAP.Action mineAction = new("Mine " + mineType + " " + robot.name, robot);
-                    mineAction.FloatEffects.Add(itemGoals[robot][mineType], 1);
-                    mineAction.FloatRangePreconditions.Add(itemGoals[robot][mineType], new(0, 5)); // Only try to actually mine when not full
+                GOAP.Action mineAction = new("Mine " + mineType + " " + robot.name, robot);
+                mineAction.FloatEffects.Add(itemGoals[robot][mineType], 1);
+                mineAction.FloatRangePreconditions.Add(itemGoals[robot][mineType], new(0, 5)); // Only try to actually mine when not full
 
-                    factoryDomain.Actions.Add(mineAction);
-                }
+                factoryDomain.Actions.Add(mineAction);
             }
 
-            // TODO: Make craft action robot independent?
             foreach (var (factoryType, factoryList) in factoryManager.factories)
             {
                 foreach (var factory in factoryList)
                 {
-                    GOAP.Action craft = new("Craft " + factoryType + " " + robot.name, robot);
-                    craft.FloatEffects.Add(beingCraftedGoals[factoryType], 1);
+                    if (!craftedGoals.ContainsKey(factory))
+                    {
+                        var craftedGoal = new FloatGoal("Crafted " + factory, 5);
+                        craftedGoals.Add(factory, craftedGoal);
+                        currentState.FloatGoals.Add(craftedGoals[factory], 0);
+                    }
 
-                    GOAP.Action retrieve = new("Retrieve " + factoryType + " " + robot.name, robot);
-                    retrieve.FloatEffects.Add(craftedGoals[factoryType], -1);
+                    GOAP.Action craft = new("Craft " + factoryType, robot);
+                    craft.FloatEffects.Add(craftedGoals[factory], 1);
+                    craft.TargetPosition = factory.transform.position;
+
+                    GOAP.Action retrieve = new("Retrieve " + factoryType, robot);
+                    retrieve.FloatEffects.Add(craftedGoals[factory], -1);
                     retrieve.FloatEffects.Add(itemGoals[robot][factoryType], 1);
-                    retrieve.FloatRangePreconditions.Add(craftedGoals[factoryType], new(1, 20));
+                    retrieve.FloatRangePreconditions.Add(craftedGoals[factory], new(1, 20));
+                    retrieve.TargetPosition = factory.transform.position;
 
                     foreach (var recipe in Item.recipes[factoryType])
                     {
@@ -87,11 +80,9 @@ public class GOAPManager : MonoBehaviour
                     factoryDomain.Actions.Add(craft);
                     factoryDomain.Actions.Add(retrieve);
                 }
-
-                currentState.FloatGoals[craftedGoals[factoryType]] = factoryList.Sum((fact) => fact.producedNum);
-                robot.CurrentPlan = new();
-
             }
+
+            robot.CurrentPlan = new();
         }
 
         // Recreate plan
@@ -103,6 +94,7 @@ public class GOAPManager : MonoBehaviour
             Debug.Log("DFS Plan:");
             for (int i = 0; i < planArray.Length; i++)
             {
+                if (planArray[i] is null) continue;
                 planArray[i].Robot.CurrentPlan.Enqueue(planArray[i]);
                 Debug.Log(planArray[i]);
             }
@@ -116,8 +108,10 @@ public class GOAPManager : MonoBehaviour
         // Keep number of crafted items up to date
         foreach (var (factoryType, factoryList) in factoryManager.factories)
         {
-            currentState.FloatGoals[craftedGoals[factoryType]] = factoryList.Sum(fact => fact.producedNum);
-            currentState.FloatGoals[beingCraftedGoals[factoryType]] = factoryList.Sum(fact => fact.numInProgress);
+            foreach (var factory in factoryList)
+            {
+                currentState.FloatGoals[craftedGoals[factory]] = factory.producedNum;
+            }
         }
 
         // if (factoryManager.robots.All(robot => robot.CurrentPlan.Count == 0))

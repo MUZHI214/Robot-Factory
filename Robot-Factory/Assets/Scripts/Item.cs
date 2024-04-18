@@ -4,11 +4,11 @@ using UnityEngine;
 public enum ItemType
 {
     Rock,
-    Metal,
     Wood,
-    Tool,
-    StoneTool,
-    WoodTool,
+    TowerBase,
+    TowerBarrel,
+    TowerProjectile,
+    Tower
 }
 
 public class Item
@@ -23,10 +23,10 @@ public class Item
     public static Dictionary<ItemType, Dictionary<ItemType, int>> recipes = new Dictionary<ItemType, Dictionary<ItemType, int>>()
     {
         [ItemType.Rock] = null,
-        [ItemType.Metal] = null,
         [ItemType.Wood] = null,
-        [ItemType.Tool] = new Dictionary<ItemType, int>() { [ItemType.Wood] = 2 },
-        [ItemType.StoneTool] = new Dictionary<ItemType, int>() { [ItemType.Rock] = 2, [ItemType.Tool] = 1 },
-        [ItemType.WoodTool] = new Dictionary<ItemType, int>() { [ItemType.Wood] = 2, [ItemType.Tool] = 1 },
+        [ItemType.TowerBase] = new Dictionary<ItemType, int>() { [ItemType.Wood] = 2 },
+        [ItemType.TowerBarrel] = new Dictionary<ItemType, int>() { [ItemType.Rock] = 2, [ItemType.Wood] = 1 },
+        [ItemType.TowerProjectile] = new Dictionary<ItemType, int>() { [ItemType.Rock] = 3 },
+        [ItemType.Tower] = new Dictionary<ItemType, int>() { [ItemType.TowerBase] = 1, [ItemType.TowerBarrel] = 1, [ItemType.TowerProjectile] = 1 }
     };
 }

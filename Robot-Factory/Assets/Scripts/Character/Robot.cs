@@ -18,6 +18,8 @@ public class Robot : Entity
 
     private bool targetSet = false;
 
+    private float retrieveTimer = 0;
+
     // Update is called once per frame
     public override void Update()
     {
@@ -86,29 +88,23 @@ public class Robot : Entity
 
                 if (!targetSet)
                 {
-                    var closestDist = float.MaxValue;
-                    Factory closestFact = null;
-                    FactoryManager.Instance.factories[itemType].ForEach(fact =>
-                    {
-                        var distToFact = Vector2.Distance(this.transform.position, fact.transform.position);
-                        if (distToFact < closestDist)
-                        {
-                            closestDist = distToFact;
-                            closestFact = fact;
-                        }
-                    });
-
-                    if (closestFact is not null)
-                    {
-                        SetTargetPosition(closestFact.transform.position);
-                        targetSet = true;
-                    }
+                    SetTargetPosition(currentAction.TargetPosition);
+                    targetSet = true;
                 }  // Only reach here once the robot can start crafting
-                else if (currentPathIndex >= pathVectorList.Count && this.PlaceItems())
+                else if (currentPathIndex >= pathVectorList.Count)
                 {
-                    targetSet = false;
-                    GOAPManager.currentState = currentAction.GetSuccessor(GOAPManager.currentState);
-                    CurrentPlan.Dequeue();
+                    // If the bot fails to place items, recreate the plan
+                    if (this.PlaceItems())
+                    {
+                        targetSet = false;
+                        GOAPManager.currentState = currentAction.GetSuccessor(GOAPManager.currentState);
+                        CurrentPlan.Dequeue();
+                    }
+                    else
+                    {
+                        targetSet = false;
+                        CurrentPlan.Clear();
+                    }
                 }
             }
             else if (currentAction.Name.Split(' ')[0].Trim() == "Retrieve")
@@ -119,35 +115,27 @@ public class Robot : Entity
 
                 if (!targetSet)
                 {
-                    var closestDist = float.MaxValue;
-                    Factory closestFact = null;
-                    FactoryManager.Instance.factories[itemType].ForEach(fact =>
-                    {
-                        var distToFact = Vector2.Distance(this.transform.position, fact.transform.position);
-                        if (distToFact < closestDist)
-                        {
-                            closestDist = distToFact;
-                            closestFact = fact;
-                        }
-                    });
-
-                    if (closestFact is not null)
-                    {
-                        SetTargetPosition(closestFact.transform.position);
-                        targetSet = true;
-                    }
+                    SetTargetPosition(currentAction.TargetPosition);
+                    targetSet = true;
+                    retrieveTimer = 0;
                 } // Only reach here once the robot can start crafting
                 else if (currentPathIndex >= pathVectorList.Count)
                 {
-                    targetSet = false;
                     // If the bot fails to retirieve items, recreate the plan
                     if (this.RetrieveItems())
                     {
+                        targetSet = false;
                         GOAPManager.currentState = currentAction.GetSuccessor(GOAPManager.currentState);
                         CurrentPlan.Dequeue();
                     }
-                    else
+                    else if (factory is not null && retrieveTimer >= factory.craftTime)
+                    {
+                        // Force the plan to be remade if the robot is waiting for too long
+                        targetSet = false;
                         CurrentPlan.Clear();
+                    }
+
+                    retrieveTimer += Time.deltaTime;
                 }
             }
         }
