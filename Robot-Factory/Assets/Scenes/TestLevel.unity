@@ -7114,6 +7114,7 @@ GameObject:
   - component: {fileID: 1295621253}
   - component: {fileID: 1295621254}
   - component: {fileID: 1295621255}
+  - component: {fileID: 1295621256}
   m_Layer: 0
   m_Name: TDManager
   m_TagString: Untagged
@@ -7188,6 +7189,20 @@ MonoBehaviour:
   enemiesPerSecond: 0.5
   timeBetweenWaves: 5
   difficultyScalingFactor: 0.75
+--- !u!114 &1295621256
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1295621252}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ad0f2d6612aadf4f843e4f98b101677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  towerPrefabs:
+  - {fileID: 497251256647719298, guid: 17c4336575ae9d94e8a407126fb15711, type: 3}
 --- !u!1001 &1300497077
 PrefabInstance:
   m_ObjectHideFlags: 0
