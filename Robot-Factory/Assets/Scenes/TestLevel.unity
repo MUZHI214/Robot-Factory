@@ -812,9 +812,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 1749865941}
-  robots:
-  - {fileID: 660084399}
-  - {fileID: 1300497078}
+  robots: []
   allMines:
   - {fileID: 1666776512}
   - {fileID: 593204856}
@@ -3348,17 +3346,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 91506878454253368, guid: 1fea528867212ff489d0b2ff4dfeb1fb, type: 3}
   m_PrefabInstance: {fileID: 873543936}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &660084399 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6254883280399322553, guid: 772934e5fcf9f764eb11a5293ab0d2fb, type: 3}
-  m_PrefabInstance: {fileID: 1235376118137170232}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7952b7e705581374d8df1345e83ee741, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1001 &663359384
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6862,17 +6849,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 772934e5fcf9f764eb11a5293ab0d2fb, type: 3}
---- !u!114 &1300497078 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 6254883280399322553, guid: 772934e5fcf9f764eb11a5293ab0d2fb, type: 3}
-  m_PrefabInstance: {fileID: 1300497077}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7952b7e705581374d8df1345e83ee741, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1001 &1309402179
 PrefabInstance:
   m_ObjectHideFlags: 0

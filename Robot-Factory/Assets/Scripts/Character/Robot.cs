@@ -153,9 +153,19 @@ public class Robot : Entity
                 if (towerPosition == Vector2.zero)
                 {
                     var randIndex = UnityEngine.Random.Range(0, FactoryManager.Instance.towerPlots.Count);
-                    targetPlot = FactoryManager.Instance.towerPlots[randIndex];
-                    towerPosition = targetPlot.transform.position;
-                    FactoryManager.Instance.towerPlots.RemoveAt(randIndex);
+                    try
+                    {
+                        targetPlot = FactoryManager.Instance.towerPlots[randIndex];
+                        towerPosition = targetPlot.transform.position;
+                        FactoryManager.Instance.towerPlots.RemoveAt(randIndex);
+                    }
+                    catch (Exception ex)
+                    {
+                        randIndex = UnityEngine.Random.Range(0, FactoryManager.Instance.towerPlots.Count);
+                        targetPlot = FactoryManager.Instance.towerPlots[randIndex];
+                        towerPosition = targetPlot.transform.position;
+                        FactoryManager.Instance.towerPlots.RemoveAt(randIndex);
+                    }
                     SetTargetPosition(towerPosition);
                 }
 

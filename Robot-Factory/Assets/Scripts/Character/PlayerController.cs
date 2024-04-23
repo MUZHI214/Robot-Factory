@@ -32,12 +32,20 @@ public class PlayerController : Entity
         {
             if (Input.GetMouseButtonUp(0))
             {
-                var types = Enum.GetValues(typeof(ItemType));
-                foreach (ItemType i in types)
+                foreach (var (reagant, amount) in Item.recipes[factory.itemToProduce])
                 {
-                    if (factory.AddItems(i, items[i]))
+                    if (items[reagant] < amount)
                     {
-                        items[i] = 0;
+                        return;
+                    }
+                }
+
+
+                foreach (var (reagant, amount) in Item.recipes[factory.itemToProduce])
+                {
+                    if (factory.AddItems(reagant, amount))
+                    {
+                        items[reagant] -= amount;
                     }
                 }
             }

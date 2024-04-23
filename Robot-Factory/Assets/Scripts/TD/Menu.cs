@@ -32,18 +32,18 @@ public class Menu : MonoBehaviour
         if (factoryManager is null) return;
 
         woodUI.text = (factoryManager.player.items[ItemType.Wood]
-            + factoryManager.robots.Aggregate(0, (acc, robot) => acc + robot.items[ItemType.Wood])).ToString();
+            + factoryManager.robots?.Aggregate(0, (acc, robot) => acc + robot.items[ItemType.Wood]) ?? 0).ToString();
         rockUI.text = (factoryManager.player.items[ItemType.Rock]
-            + factoryManager.robots.Aggregate(0, (acc, robot) => acc + robot.items[ItemType.Rock])).ToString();
+            + factoryManager.robots?.Aggregate(0, (acc, robot) => acc + robot.items[ItemType.Rock]) ?? 0).ToString();
         towerBaseUI.text = (factoryManager.player.items[ItemType.TowerBase]
-            + factoryManager.robots.Aggregate(0, (acc, robot) => acc + robot.items[ItemType.TowerBase])).ToString();
+            + factoryManager.robots?.Aggregate(0, (acc, robot) => acc + robot.items[ItemType.TowerBase]) ?? 0).ToString();
         towerBarrelUI.text = (factoryManager.player.items[ItemType.TowerBarrel]
-            + factoryManager.robots.Aggregate(0, (acc, robot) => acc + robot.items[ItemType.TowerBarrel])).ToString();
+            + factoryManager.robots?.Aggregate(0, (acc, robot) => acc + robot.items[ItemType.TowerBarrel]) ?? 0).ToString();
         towerProjectileUI.text = (factoryManager.player.items[ItemType.TowerProjectile]
-            + factoryManager.robots.Aggregate(0, (acc, robot) => acc + robot.items[ItemType.TowerProjectile])).ToString();
+            + factoryManager.robots?.Aggregate(0, (acc, robot) => acc + robot.items[ItemType.TowerProjectile]) ?? 0).ToString();
         towerUI.text = (factoryManager.player.items[ItemType.Tower]
-            + factoryManager.robots.Aggregate(0, (acc, robot) => acc + robot.items[ItemType.Tower])).ToString();
-        robotUI.text = factoryManager.robots.Count.ToString();
-        timeUI.text = stopwatch.Elapsed.Seconds.ToString() + " sec";
+            + factoryManager.robots?.Aggregate(0, (acc, robot) => acc + robot.items[ItemType.Tower]) ?? 0).ToString();
+        robotUI.text = factoryManager.robots?.Count.ToString() ?? "0";
+        timeUI.text = stopwatch.Elapsed.Minutes.ToString() + ":" + stopwatch.Elapsed.Seconds.ToString();
     }
 }

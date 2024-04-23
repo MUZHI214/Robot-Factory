@@ -6,7 +6,7 @@ using UnityEngine;
 public class FactoryManager : MonoBehaviour
 {
     public PlayerController player;
-    public List<Robot> robots;
+    public List<Robot> robots = new List<Robot>();
 
     [SerializeField]
     private List<ItemMine> allMines;
@@ -26,7 +26,7 @@ public class FactoryManager : MonoBehaviour
     void Start()
     {
         towerPlots = new List<Plot>(GameObject.FindObjectsByType<Plot>(FindObjectsSortMode.None));
-        towerPlots.RemoveAll(plot => plot.tower is null && plot.nextToPath);
+        towerPlots.RemoveAll(plot => plot.tower != null || !plot.nextToPath);
 
         pathfinding = new Pathfinding(10, 10);
 

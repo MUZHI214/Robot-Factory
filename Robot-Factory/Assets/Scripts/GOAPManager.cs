@@ -117,6 +117,7 @@ public class GOAPManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (factoryManager.robots.Count <= 0) return;
         // Keep number of crafted items up to date
         foreach (var (factoryType, factoryList) in factoryManager.factories)
         {
