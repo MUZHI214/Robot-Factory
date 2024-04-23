@@ -6,13 +6,16 @@ public class EnemyHealth : MonoBehaviour
 {
     [Header("Attributes")]
     [SerializeField] private int hitPoints = 2;
-    
+
+    private bool isDestroyed = false;
+
     public void TakeDamage(int dmg)
     {
         hitPoints -= dmg;
-        if (hitPoints <= 0)
+        if (hitPoints <= 0 && !isDestroyed)
         {
             EnemySpawner.onEnemyDestory.Invoke();
+            isDestroyed = true;
             Destroy(gameObject);
         }
         
