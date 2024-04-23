@@ -12,6 +12,8 @@ public class Plot : MonoBehaviour
     public GameObject tower;
     private Color startColor;
 
+    public bool nextToPath;
+
     private void Start()
     {
         startColor = sr.color;
@@ -30,13 +32,15 @@ public class Plot : MonoBehaviour
     // player build tower on the plot
     private void OnMouseDown()
     {
-        Debug.Log("build tower here: " + name);
-        // if the place is not empty, do nothing
+        var player = FactoryManager.Instance.player;
+
         if (tower != null) return;
+        if (player.items[ItemType.Tower] <= 0) return;
+
+        Debug.Log("build tower here: " + name);
+        player.items[ItemType.Tower]--;
+        FactoryManager.Instance.towerPlots.Remove(this);
         GameObject towerToBuild = BuildManager.main.GetSelectedTower();
-
-        //TDManager.main.SpendResource();
-
-        tower = Instantiate(towerToBuild, transform.position,Quaternion.identity);
+        tower = Instantiate(towerToBuild, transform.position, Quaternion.identity);
     }
 }

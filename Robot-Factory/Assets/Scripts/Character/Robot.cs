@@ -22,6 +22,8 @@ public class Robot : Entity
 
     [SerializeField]
     private GameObject towerPrefab;
+    private Vector2 towerPosition = Vector2.zero;
+    private Plot targetPlot = null;
 
     // Update is called once per frame
     public override void Update()
@@ -143,47 +145,27 @@ public class Robot : Entity
             }
             else if (currentAction.Name == "Place Tower")
             {
-                var towerPosition = Vector2.zero;
-                var allTowers = GameObject.FindObjectsOfType<Tower>();
-                // TODO: find a valid place to put a tower and Instantiate it at that location
-                foreach (var point in TDManager.main.path)
+                if (FactoryManager.Instance.towerPlots.Count <= 0)
                 {
-                    int gridX = 0;
-                    int gridY = 0;
-                    Pathfinding.Instance.GetGrid().GetXY(point.position, out gridX, out gridY);
-                    var neighbors = Pathfinding.Instance.GetNeighbourList(
-                        Pathfinding.Instance.GetNode(
-                            gridX,
-                            gridY
-                        )
-                    );
-
-                    for (int i = 0; i < neighbors.Count; i++)
-                    {
-                        for (int j = 0; j < allTowers.Length; j++)
-                        {
-
-                            Pathfinding.Instance.GetGrid().GetXY(allTowers[j].transform.position, out gridX, out gridY);
-                            if (neighbors[i].x != gridX || neighbors[i].y != gridY)
-                            {
-                                towerPosition = Pathfinding.Instance.GetGrid().GetWorldPosition(neighbors[i].x, neighbors[i].y);
-                                towerPosition.x += Pathfinding.Instance.GetGrid().GetCellSize() / 2;
-                                towerPosition.y += Pathfinding.Instance.GetGrid().GetCellSize() / 2;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (towerPosition != Vector2.zero)
-                        break;
+                    CurrentPlan.Dequeue();
                 }
 
-                if (towerPosition != Vector2.zero)
+                if (towerPosition == Vector2.zero)
                 {
-                    // Instantiate(towerPrefab, towerPosition, Quaternion.identity, null);
+                    var randIndex = UnityEngine.Random.Range(0, FactoryManager.Instance.towerPlots.Count);
+                    targetPlot = FactoryManager.Instance.towerPlots[randIndex];
+                    towerPosition = targetPlot.transform.position;
+                    FactoryManager.Instance.towerPlots.RemoveAt(randIndex);
+                    SetTargetPosition(towerPosition);
+                }
+
+                if (towerPosition != Vector2.zero && currentPathIndex >= pathVectorList.Count)
+                {
+                    targetPlot.tower = Instantiate(towerPrefab, towerPosition, Quaternion.identity, null);
                     GOAPManager.currentState = currentAction.GetSuccessor(GOAPManager.currentState);
+                    CurrentPlan.Dequeue();
+                    towerPosition = Vector2.zero;
                 }
-                CurrentPlan.Dequeue();
             }
         }
         else

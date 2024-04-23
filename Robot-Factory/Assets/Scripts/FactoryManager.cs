@@ -15,6 +15,7 @@ public class FactoryManager : MonoBehaviour
 
     public Dictionary<ItemType, List<ItemMine>> itemMines = new Dictionary<ItemType, List<ItemMine>>();
     public Dictionary<ItemType, List<Factory>> factories = new Dictionary<ItemType, List<Factory>>();
+    public List<Plot> towerPlots;
 
     private Pathfinding pathfinding;
 
@@ -24,6 +25,9 @@ public class FactoryManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        towerPlots = new List<Plot>(GameObject.FindObjectsByType<Plot>(FindObjectsSortMode.None));
+        towerPlots.RemoveAll(plot => plot.tower is null && plot.nextToPath);
+
         pathfinding = new Pathfinding(10, 10);
 
         if (Instance is null)
